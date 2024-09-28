@@ -1,0 +1,92 @@
+Step 1:- Create I am policy 
+
+Go to Aws -> Iam -> create policy -> json -> or vi policy.json
+
+aws iam create-policy --policy-name "AllowExternalDNSUpdates" --policy-document file://policy.json
+
+eksctl create cluster --external-dns-access --name $EKS_CLUSTER_NAME --region $EKS_CLUSTER_REGION
+
+cluster_name=my-cluster
+
+oidc_id=$(aws eks describe-cluster --name $cluster_name --query "cluster.identity.oidc.issuer" --output text | cut -d '/' -f 5)
+
+echo $oidc_id
+
+aws iam list-open-id-connect-providers | grep $oidc_id | cut -d "/" -f4
+
+eksctl utils associate-iam-oidc-provider --cluster $cluster_name --approve
+
+export cluster_name=my-cluster
+
+export role_name=AmazonEKS_EFS_CSI_DriverRole
+
+eksctl create iamserviceaccount \
+    --name efs-csi-controller-sa \
+    --namespace kube-system \
+    --cluster $cluster_name \
+    --role-name $role_name \
+    --role-only \
+    --attach-policy-arn arn:aws:iam::aws:policy/service-role/AmazonEFSCSIDriverPolicy \
+    --approve
+
+TRUST_POLICY=$(aws iam get-role --role-name $role_name --query 'Role.AssumeRolePolicyDocument' | \
+    sed -e 's/efs-csi-controller-sa/efs-csi-*/' -e 's/StringEquals/StringLike/')
+
+aws iam update-assume-role-policy --role-name $role_name --policy-document "$TRUST_POLICY"
+
+eksctl create iamserviceaccount --name <SERVICE_ACCOUNT_NAME> --namespace kube-system --cluster CLUSTER_NAME --attach-policy-arn <IAM_POLICY_ARN> --approve --region < >
+
+kubectl api-versions | grep rbac.authorization.k8s.io
+
+if we get output 
+
+then follow below
+
+kubectl create -f clusterrole.yaml
+
+kubectl create -f clusterrolebinding.yaml
+
+kubectl create -f external-dns.yaml(change txt-owner-id as zone id, domain-filter as domain and aws-zone-type as public
+
+kubectl logs -l app.kubernetes.io/name=external-dns -n kube-system
+
+time="2024-09-28T12:40:05Z" level=info msg="Applying provider record filter for domains: [vinitham.online. .vinitham.online.]"
+time="2024-09-28T12:40:05Z" level=info msg="All records are already up to date"
+time="2024-09-28T12:41:06Z" level=info msg="Applying provider record filter for domains: [vinitham.online. .vinitham.online.]"
+time="2024-09-28T12:41:06Z" level=info msg="All records are already up to date"
+time="2024-09-28T12:42:07Z" level=info msg="Applying provider record filter for domains: [vinitham.online. .vinitham.online.]"
+time="2024-09-28T12:42:07Z" level=info msg="All records are already up to date"
+time="2024-09-28T12:43:07Z" level=info msg="Applying provider record filter for domains: [vinitham.online. .vinitham.online.]"
+time="2024-09-28T12:43:07Z" level=info msg="All records are already up to date"
+time="2024-09-28T12:44:08Z" level=info msg="Applying provider record filter for domains: [vinitham.online. .vinitham.online.]"
+time="2024-09-28T12:44:08Z" level=info msg="All records are already up to date"
+
+kubectl create -f deploy-svc.yaml
+
+kubectl get svc
+
+kubectl logs external-dns-9f85d8d5b-sx5fg
+
+output
+
+time="2024-09-28T13:05:23Z" level=info msg="Desired change: UPSERT vinitham.online TXT [Id: /hostedzone/Z02112353K3Z94ZKQRLG4]"
+time="2024-09-28T13:05:23Z" level=info msg="2 record(s) in zone vinitham.online. [Id: /hostedzone/Z02112353K3Z94ZKQRLG4] were successfully updated"  
+time="2024-09-28T13:06:23Z" level=info msg="Applying provider record filter for domains: [vinitham.online. .vinitham.online.]"
+time="2024-09-28T13:06:23Z" level=info msg="Desired change: UPSERT vinitham.online A [Id: /hostedzone/Z02112353K3Z94ZKQRLG4]"
+time="2024-09-28T13:06:23Z" level=info msg="Desired change: UPSERT vinitham.online TXT [Id: /hostedzone/Z02112353K3Z94ZKQRLG4]"
+time="2024-09-28T13:06:23Z" level=info msg="Applying provider record filter for domains: [vinitham.online. .vinitham.online.]"
+time="2024-09-28T13:06:23Z" level=info msg="Desired change: UPSERT vinitham.online A [Id: /hostedzone/Z02112353K3Z94ZKQRLG4]"
+time="2024-09-28T13:06:23Z" level=info msg="Desired change: UPSERT vinitham.online TXT [Id: /hostedzone/Z02112353K3Z94ZKQRLG4]"
+time="2024-09-28T13:06:23Z" level=info msg="2 record(s) in zone vinitham.online. [Id: /hostedzone/Z02112353K3Z94ZKQRLG4] were successfully updated"  
+time="2024-09-28T13:06:23Z" level=info msg="Desired change: UPSERT vinitham.online A [Id: /hostedzone/Z02112353K3Z94ZKQRLG4]"
+time="2024-09-28T13:06:23Z" level=info msg="Desired change: UPSERT vinitham.online TXT [Id: /hostedzone/Z02112353K3Z94ZKQRLG4]"
+time="2024-09-28T13:06:23Z" level=info msg="2 record(s) in zone vinitham.online. [Id: /hostedzone/Z02112353K3Z94ZKQRLG4] were successfully updated"  
+time="2024-09-28T13:06:23Z" level=info msg="Desired change: UPSERT vinitham.online TXT [Id: /hostedzone/Z02112353K3Z94ZKQRLG4]"
+time="2024-09-28T13:06:23Z" level=info msg="2 record(s) in zone vinitham.online. [Id: /hostedzone/Z02112353K3Z94ZKQRLG4] were successfully updated"
+
+
+
+
+
+
+
