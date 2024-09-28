@@ -1,6 +1,6 @@
 Step 1:- Create I am policy 
 
-Go to Aws -> Iam -> create policy -> json -> or vi policy.json
+Go to Aws -> Iam -> create policy -> json -> copy the content of the policy.json or vi policy.json
 
 aws iam create-policy --policy-name "AllowExternalDNSUpdates" --policy-document file://policy.json
 
