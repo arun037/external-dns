@@ -88,6 +88,51 @@ time="2024-09-28T13:06:23Z" level=info msg="Desired change: UPSERT vinitham.onli
 time="2024-09-28T13:06:23Z" level=info msg="2 record(s) in zone vinitham.online. [Id: /hostedzone/Z02112353K3Z94ZKQRLG4] were successfully updated"
 
 
+nginx ingress
+
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm repo update
+helm install ingress-nginx ingress-nginx/ingress-nginx
+
+kubectl get services -n ingress-nginx
+
+Need to change the service file as 
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+spec:
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+  selector:
+    app: nginx
+
+nginx-ingress.yaml
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sample-app-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    external-dns.alpha.kubernetes.io/hostname: your-domain.com
+spec:
+  rules:
+  - host: your-domain.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: <service>
+            port: 
+              number: 80
+
+The only thing need to be change as the annotation from the svc need to be removed and change the loadbalancer as clusterip and that annotation needs to be added in ingress and service name need to be changed
 
 
 
